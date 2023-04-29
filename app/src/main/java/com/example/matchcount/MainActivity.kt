@@ -45,18 +45,22 @@ class MainActivity : AppCompatActivity() {
             clicked(this,position)
         }
         //listed values
-        for (0..72) {
+        for (i in 0..72) {
             goals.add(0)
-
+            possibleGoals.add(0)
+            outOfBounces.add(0)
+            gameNumber.add(0)
         }
     }
 }
 private fun clicked(context: Context, index: Int) {
     when(index) {
-        0 -> {goals[gameNumber]++; array_control.set(0, "Goals: $goals")}
-        1 -> {goals++; array_control.set(0, "Goals: $goals")}
-        2 -> {goals++; array_control.set(0, "Goals: $goals")}
-        3 -> {goals++; array_control.set(0, "Goals: $goals")}
+        0 -> {goals.set(index, goals.get(index+1)); array_control.set(0, "Goals: $goals")}
+        1 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
+        2 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
+        3 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
+        4 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
+        5 -> gameNumber+=1
     }
     arrayAdapter_control.notifyDataSetChanged()
 }
