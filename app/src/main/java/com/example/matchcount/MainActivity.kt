@@ -5,7 +5,13 @@ import android.icu.number.IntegerWidth
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
+import com.example.matchcount.MainActivity.Companion.arrayAdapter_control
+import com.example.matchcount.MainActivity.Companion.array_control
+import com.example.matchcount.MainActivity.Companion.gameNumber
 import com.example.matchcount.MainActivity.Companion.goals
 import com.example.matchcount.MainActivity.Companion.outOfBounces
 import com.example.matchcount.MainActivity.Companion.possibleGoals
@@ -13,26 +19,46 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        public val context = this
-        val goals: ArrayList<Int>  = ArrayList()
-        val possibleGoals: ArrayList<Int>  = ArrayList()
-        val outOfBounces: ArrayList<Int>  = ArrayList()
+        val context = this
+        var goals:          ArrayList<Int>      = ArrayList<Int>()
+        val possibleGoals:  ArrayList<Int>      = ArrayList<Int>()
+        val outOfBounces:   ArrayList<Int>      = ArrayList<Int>()
+        var gameNumber:     ArrayList<Int>      = ArrayList<Int>()
+        var array_control:  ArrayList<String>   = ArrayList<String>()
+        lateinit var arrayAdapter_control: ArrayAdapter<String>
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val textView_Test: TextView = findViewById(R.id.textView_test)
+        //UI
+        //listView_control--------------------------------------------------------------------------
+        val listView_control: ListView = findViewById(R.id.listView_control)
+        array_control.add("GOAL")
+        array_control.add("POSSIBLE GOALS")
+        array_control.add("BAD GOAL SHOOT")
+        array_control.add("OUT OF BOUNCE")
+        array_control.add("GAME: $gameNumber")
+        arrayAdapter_control = ArrayAdapter(this, android.R.layout.simple_list_item_1,array_control)
+        listView_control.adapter=arrayAdapter_control
+        listView_control.setOnItemClickListener { parent, view, position, id ->
+            clicked(this,position)
+        }
+        //listed values
+        for (0..72) {
+            goals.add(0)
 
-        val goals: ArrayList<Int>  = ArrayList()
-        val possibleGoal: ArrayList<Int>  = ArrayList()
-        val outOfBounces: ArrayList<Int>  = ArrayList()
-        goals.add(73)
-        goals.add(7)
-        goals.add(13)
-        overrideStorage(this, goals)
-        textView_Test.text=goals.toString()
+        }
     }
+}
+private fun clicked(context: Context, index: Int) {
+    when(index) {
+        0 -> {goals[gameNumber]++; array_control.set(0, "Goals: $goals")}
+        1 -> {goals++; array_control.set(0, "Goals: $goals")}
+        2 -> {goals++; array_control.set(0, "Goals: $goals")}
+        3 -> {goals++; array_control.set(0, "Goals: $goals")}
+    }
+    arrayAdapter_control.notifyDataSetChanged()
 }
 private fun overrideStorage(context: Context, text: ArrayList<Int>){
     // Schreiben in eine Textdatei
@@ -52,9 +78,9 @@ private fun extractData(input: String) {                                        
             break
         } else if(char==']') {
             when(arrayIndex) {
-                1 -> goals.add(buffer.toInt())
-                2 -> possibleGoals.add(buffer.toInt())
-                3 -> outOfBounces.add(buffer.toInt())
+                1 -> goals+=buffer.toInt()
+                2 -> possibleGoals+=buffer.toInt()
+                3 -> outOfBounces+=buffer.toInt()
             }
             buffer = ""
             arrayIndex++
