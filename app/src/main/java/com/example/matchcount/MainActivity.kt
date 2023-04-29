@@ -4,6 +4,7 @@ import android.content.Context
 import android.icu.number.IntegerWidth
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.ListView
@@ -11,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.matchcount.MainActivity.Companion.arrayAdapter_control
 import com.example.matchcount.MainActivity.Companion.array_control
+import com.example.matchcount.MainActivity.Companion.buffer
 import com.example.matchcount.MainActivity.Companion.gameNumber
 import com.example.matchcount.MainActivity.Companion.goals
 import com.example.matchcount.MainActivity.Companion.outOfBounces
@@ -23,57 +25,89 @@ class MainActivity : AppCompatActivity() {
         var goals:          ArrayList<Int>      = ArrayList<Int>()
         val possibleGoals:  ArrayList<Int>      = ArrayList<Int>()
         val outOfBounces:   ArrayList<Int>      = ArrayList<Int>()
-        var gameNumber:     ArrayList<Int>      = ArrayList<Int>()
+        var gameNumber:     Int                 = 0
         var array_control:  ArrayList<String>   = ArrayList<String>()
         lateinit var arrayAdapter_control: ArrayAdapter<String>
+
+        var buffer:String = ""
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //UI
-        //listView_control--------------------------------------------------------------------------
-        val listView_control: ListView = findViewById(R.id.listView_control)
-        array_control.add("GOAL")
-        array_control.add("POSSIBLE GOALS")
-        array_control.add("BAD GOAL SHOOT")
-        array_control.add("OUT OF BOUNCE")
-        array_control.add("GAME: $gameNumber")
-        arrayAdapter_control = ArrayAdapter(this, android.R.layout.simple_list_item_1,array_control)
-        listView_control.adapter=arrayAdapter_control
-        listView_control.setOnItemClickListener { parent, view, position, id ->
-            clicked(this,position)
-        }
         //listed values
         for (i in 0..72) {
             goals.add(0)
             possibleGoals.add(0)
             outOfBounces.add(0)
-            gameNumber.add(0)
+        }
+        //UI
+        var textView_test: TextView = findViewById(R.id.textView_test)
+        //listView_control--------------------------------------------------------------------------
+        val listView_control: ListView = findViewById(R.id.listView_control)
+        array_control.add("GOALS: $buffer")
+        array_control.add("POSSIBLE GOALS: $buffer")
+        array_control.add("OUT OF BOUNCE: $buffer")
+        array_control.add("null")
+        array_control.add("GAME: $gameNumber")
+        array_control.add("Settings")
+        arrayAdapter_control = ArrayAdapter(this, android.R.layout.simple_list_item_1,array_control)
+        listView_control.adapter=arrayAdapter_control
+        listView_control.setOnItemClickListener { parent, view, position, id ->
+            clicked(this,position)
+            textView_test.text=position.toString()
+        }
+        listView_control.setOnItemLongClickListener { parent, view, position, id ->
+            longKClicked(this, position)
+            true//required.don't know why
         }
     }
 }
-private fun clicked(context: Context, index: Int) {
-    when(index) {
-        0 -> {goals.set(index, goals.get(index+1)); array_control.set(0, "Goals: $goals")}
-        1 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
-        2 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
-        3 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
-        4 -> {goals[index]++; array_control.set(0, "Goals: $goals")}
-        5 -> gameNumber+=1
-    }
+private fun clicked(context: Context, index: Int) { //index in listView
+    when(index) {   //operate the proper button
+        0 -> {goals[gameNumber]++}
+        1 -> {possibleGoals[gameNumber]++}
+        2 -> {outOfBounces[gameNumber]++;}
+        3 -> {array_control.set(gameNumber, "null");Toast.makeText(context,"null",Toast.LENGTH_SHORT).show()}
+        4 -> {gameNumber++;gameNumber=if(gameNumber==73)0 else gameNumber}
+        5 -> { Toast.makeText(context,"settings not implemented yet",Toast.LENGTH_SHORT).show()}
+    }//refresh whole listView
+    buffer= goals[gameNumber].toString(); array_control[0] = "Goals: $buffer"
+    buffer= possibleGoals[gameNumber].toString(); array_control[1] = "Possible Goals: $buffer"
+    buffer= outOfBounces[gameNumber].toString(); array_control[2] = "Out Of Bounces: $buffer"
+    buffer= gameNumber.toString(); array_control[4]="Game: $buffer"
     arrayAdapter_control.notifyDataSetChanged()
 }
-private fun overrideStorage(context: Context, text: ArrayList<Int>){
-    // Schreiben in eine Textdatei
-    val file = File(context.filesDir, "matchCount.txt")
-    file.writeText(text.toString())
+private fun longKClicked(context: Context, index: Int) { //index in listView
+    when(index) {   //operate the proper button
+        0 -> {goals[gameNumber]=0}
+        1 -> {possibleGoals[gameNumber]=0}
+        2 -> {outOfBounces[gameNumber]=0;}
+        3 -> {array_control[gameNumber] = "null";Toast.makeText(context,"null",Toast.LENGTH_SHORT).show()}
+        4 -> {gameNumber=0}
+        5 -> { Toast.makeText(context,"settings not implemented yet",Toast.LENGTH_SHORT).show()}
+    }//refresh whole listView
+    buffer= goals[gameNumber].toString(); array_control[0] = "Goals: $buffer"
+    buffer= possibleGoals[gameNumber].toString(); array_control[1] = "Possible Goals: $buffer"
+    buffer= outOfBounces[gameNumber].toString(); array_control[2] = "Out Of Bounces: $buffer"
+    buffer= gameNumber.toString(); array_control[4]="Game: $buffer"
+    arrayAdapter_control.notifyDataSetChanged()
+    overrideStorage(context)
 }
-private fun readStorage(context: Context) {
-    val file = File(context.filesDir, "matchCount.txt")
+fun overrideStorage(context: Context){    //TODO: change to store all data
+    // Schreiben in eine Textdatei
+    val downloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    val file = File(/*context.filesDir*/downloadFolder, "matchCount.txt")    //TODO:implement settings with inputTextLayer for naming the file
+    val data: String=
+        "Goals: $goals\nPossible Goals: $possibleGoals\nOut Of Bounces: $outOfBounces\n"
+    file.writeText(data.toString())
+}
+fun readStorage(context: Context) {
+    val downloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    val file = File(/*context.filesDir*/downloadFolder, "matchCount.txt")
     var data = file.readText()
 }
-private fun extractData(input: String) {                                                            //make sure, that the lists are int only
+fun extractData(input: String) {                                                            //make sure, that the lists are int only
     var arrayIndex: Int = 0
     var buffer: String =""
     for (i in input.indices){
